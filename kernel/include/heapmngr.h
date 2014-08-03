@@ -1,0 +1,53 @@
+#ifndef HEAPMNGR_H
+#define HEAPMNGR_H
+#include <types.h>
+
+
+#define KHEAP_START         0xC0000000
+#define KHEAP_INITIAL_SIZE  0x19000000
+#define HEAP_INDEX_SIZE   	0x4000000
+#define HEAP_MAGIC          0x123890AB
+#define HEAP_MIN_SIZE       0x400000
+typedef void* type_t;
+
+typedef struct 
+{
+	void **element;
+	u32 size;
+	u32 maxsize;
+
+}table_t;
+
+
+typedef struct
+{
+	u32 size;
+	u8 is_hole;
+	u32 magic;		
+}desc_head;
+
+typedef struct
+{
+	u32 magic;
+	desc_head *header;
+	
+}desc_foot;
+
+typedef struct
+{
+	table_t table;
+	u32 maxaddr;
+	u32 endaddr;
+	u32 startaddr;
+	u8 supervisor;
+	u8 readonly;
+}heap_t;
+
+heap_t *_heapmngr_initialize( u32 heap_pool_start_pos, u32 heap_pool_end_pos,u32 sz);
+extern void *malloc_(u32 sz);
+extern void free(void *ptr);
+extern void *malloc_a(u32 sz);
+extern void *malloc(u32 sz);
+extern void free_(void *ptr);
+extern heap_t * kheap;
+#endif
