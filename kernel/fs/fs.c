@@ -131,13 +131,13 @@ int sys_read(unsigned int fd,char * buf,int count)
          if (!file)
                  goto bad_file;
          inode = file->f_inode;	
-      
+       
          error = 0;
          if (count <= 0)
                  goto out;
 
         file->f_op->read(inode,file,count,buf);
-    
+		
 		 return error;
  out:
      //    fput(file, inode);
@@ -166,7 +166,7 @@ return 0;
 }
 
 
- int sys_stat(const char * filename, struct stat * statbuf)
+ int sys_stat( char * filename, struct stat * statbuf)
   {
 
          struct inode *inode_; //= malloc_(sizeof(struct inode));
@@ -188,7 +188,7 @@ return 0;
     //      tmp.st_ctime = inode->i_ctime;
        
  }
- void stat(const char * filename, struct stat * statbuf)
+ void stat( char * filename, struct stat * statbuf)
  {
 	 sys_stat(filename, statbuf);
  }

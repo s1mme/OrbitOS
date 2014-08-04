@@ -7,6 +7,7 @@
 #include <system.h>
 #include <sched.h>
 #include <hardisk.h>
+#include <elf.h>
 u32 find_inode(u32 inode);
 u32 inode_count = 0;
 u32 inodes_per_group = 0;
@@ -43,7 +44,7 @@ unsigned int inode_contain(u32 start_inode,u32 inode);
 u32 BGDT(u32 blockgroup, u32 inode)
 {
 	printk("test");
-	struct ext2_group_desc *p = malloc(512);
+	struct ext2_group_desc *p = malloc(1024);
 	read_disc_sector(4,1,p);
 	p += blockgroup;
 
@@ -82,6 +83,7 @@ u32 block_id_s;
 u32 block_id_d;
 u32 block_id_t;
 u32 i_block[11];
+u32 i_blocks;
 unsigned int inode_contain(u32 start_inode, u32 inode_number)
 {
 	int nr_sectors = 0;
@@ -92,26 +94,30 @@ unsigned int inode_contain(u32 start_inode, u32 inode_number)
 	
 	while(nr_sectors <= (int)inode_count)
 	{		
-		buf = malloc(nr_sectors*512*22);		
+		buf = malloc(nr_sectors*512);		
 		read_disc_sector((start_inode*2)+nr_sectors,2,buf);		    
 		for(i = 0; i < (int)sector_i; i++)
 		{	
 			u32 local_inode_index = what_i_inside_grp(inode_number);
 			if(buf->i_size )
 			{
-					while(i < 15)
+				int r = 0;
+					while(r < 15)
 					{
-						printk("i_block[0] %d\n", buf->i_block[i]);
+					//	printk("i_block[%d] %d\n", r, buf->i_block[r]);
 						block_id_s = buf->i_block[12];
 						block_id_d = buf->i_block[13];
 						block_id_t = buf->i_block[14];
-						i++;
+						i_blocks = buf->i_blocks;
+						r++;
 					}					
 			}
 				if(counter  == local_inode_index )
 				{
-					for( i = 0; i < 11; i++)
+						
+					for( i = 0; i <= 11; i++)
 						i_block[i] = buf->i_block[i];
+					printk("buf->i_block[11] %d\n", buf->i_block[11]);
 					file_size = buf->i_size;
 					return  buf->i_block[0];
 				}
@@ -148,15 +154,16 @@ void ext2_output_( unsigned char * buf)
 	}
 }
 
-struct ext2_dir_entry * parse_dir(struct ext2_dir_entry * dir,char * file_name)
+struct ext2_dir_entry * parse_dir(struct ext2_dir_entry * dir, char * file_name)
 {
 		while(dir->rec_len > 0)
 	{	    
 		char name[EXT2_NAME_LEN + 1] = {0};
 		memcpy(name, dir->name, dir->name_len);
 		printk("%s     %d\n",  name, /*dir->rec_len, */ dir->inode);
-		
-		if(strcmp(name, file_name) == 0)
+		//printk("file name is %s\n", file_name);
+		//printk("file name is__ %s\n", name);
+		if(strcmp(name, "test__2") == 0)
 		{
 			printk("inode %d\n", dir->inode);
 			printk("\n");
@@ -167,7 +174,7 @@ struct ext2_dir_entry * parse_dir(struct ext2_dir_entry * dir,char * file_name)
 	return dir;
 }
 
-struct ext2_dir_entry * parse_root_directory(char * file_name)
+struct ext2_dir_entry * parse_root_directory(  char * file_name)
 {
 	u32 start_sector = inode_contain(164,2);	//root dir has always inode 2
 	int nr_sectors = 1;
@@ -183,10 +190,10 @@ char  * ext2_read_block(struct ext2_dir_entry *dir)
 {
 	 printk("dir->inode = %d\n\n", dir->inode);
      u32 what_block_group = find_inode(dir->inode);
-    
+    printk("what_block_group = %d\n", what_block_group);
 	 u32 blocktoread = BGDT(what_block_group, dir->inode);	
 	
-
+	printk("file_size = %d\n", file_size);
 	 u32 nr_sectors = file_size/512;
 	 if (file_size % 512 != 0) { nr_sectors++; }
 	  
@@ -194,14 +201,14 @@ char  * ext2_read_block(struct ext2_dir_entry *dir)
 	 printk("blocktoread %d\n",blocktoread);
 
 	 char *buf =  malloc(1024);
-	 return read_disc_sector(blocktoread*2,24,buf);	
+	 return read_disc_sector(blocktoread*2,2,buf);	
 }
 
-struct ext2_dir_entry * ext2_read_dir_contents(char *dir_name, char * file_name)
+struct ext2_dir_entry * ext2_read_dir_contents(  char *dir_name,   char * file_name)
 {
 	 struct ext2_dir_entry *dir = parse_root_directory(dir_name);
 	  
- 
+      
 	 struct ext2_dir_entry * new_buf = (struct ext2_dir_entry *)ext2_read_block(dir);	
 
 	 return(parse_dir(new_buf, file_name));
@@ -249,7 +256,7 @@ int ext2_open(int fd, struct file * file, char *file_path )
 	 free(basec);
 	 return 0;
 }
-
+/*
 static void	read_indirect_blocks( u32 indir_block, u32 max_num, void *buf__) {
 printk("indir_block %d\n", indir_block);
 printk("max_num %d\n", max_num);
@@ -269,7 +276,7 @@ for (i = 0; i < (int)max_num; i++) {
 }
 
 free(local_buf);
-}
+} */
 
 static u32 read_direct_blocks( u32 *blocklist, u32 num, void *buf) {
 
@@ -279,7 +286,7 @@ for (u32 i = 0; i < num; i++) {
 if (blocklist[i] == 0) {
 continue;
 }
-
+//printk("blocklist[%d]\n", blocklist[i]);
 read_disc_sector(blocklist[i]*2, 2,(char *)buf + i * 1024);
 }
 
@@ -289,12 +296,12 @@ return num;
 static u32 read_singly_indirect_blocks( u32 indir_block, u32 max_num, void *buf) {
 printk("indir_block[%d] \n",indir_block);
 
-u32 *blocklist = malloc(1024);
-read_disc_sector( indir_block*2,  1024 / 512,blocklist);
+u32 * blocklist = (u32*)kmalloc(1024);
+read_disc_sector( indir_block*2,  2,blocklist);
 
 read_direct_blocks( blocklist, max_num, buf);
 
-free(blocklist);
+
 
 return max_num;
 }
@@ -303,18 +310,18 @@ return max_num;
 static u32 read_doubly_indirect_blocks( u32 doubly_block, u32 num, void *buf) {
 printk("doubly_block[%d] \n",doubly_block);
 
-u32 *singly_blocks = malloc(1024);
-read_disc_sector(  doubly_block*2,  1024 / 512,singly_blocks);
+u32 *singly_blocks = (u32*)kmalloc(1024);
+read_disc_sector(  doubly_block*2,  2,singly_blocks);
 
 
 printk("singly blocks for doubly block %u:\n", doubly_block);
-for (u32 i = 0; i < 1024/4; i++) {
+/*for (u32 i = 0; i < 1024/4; i++) {
         printk("%u ", singly_blocks[i]);
         if (i % 10 == 0)
             printk("\n");
     }
 printk("\n\n");
-
+*/
 
 u32 read_data_blocks = 0;
 for (u32 i = 0; num > read_data_blocks && i < 1024/4; i++) {
@@ -326,40 +333,36 @@ continue;
 u32 num_indir_blocks = min(num - read_data_blocks, 1024/4); 
 read_data_blocks += read_singly_indirect_blocks( singly, num_indir_blocks, (char *)buf + read_data_blocks * 1024);
 }
-free(singly_blocks);
+
 
 return read_data_blocks;
 }
 
 int ext2_read(struct inode * inode, struct file * file, int count, char *file_data)
 {		
-	struct ext2_dir_entry *dir= malloc(sizeof(struct ext2_dir_entry)*22);
-	dir->inode = inode->i_ino;
-	printk("inode nr %d\n", dir->inode);
-	char * new_buf = ext2_read_block(dir);
-	free(dir);
-		printk("block_id_s : %d\n",block_id_s);
-	free(new_buf);
-	//memset(buf, 0, file_size);
+
+	printk("block_id_s : %d\n",block_id_s);
 	printk("file_size : %d\n",file_size);
-
-		u32 num_blocks = file_size/(s_log_block_size);
+	
 		
-		//char *file_data = malloc(num_blocks * 1024);
-		//memset(file_data, 0, num_blocks * 1024);
-
+		
+		u32 num_blocks = i_blocks/(2);
+		printk("numblocks : %d\n", num_blocks);
 		u32 read_blocks = 0;
 		
 		read_direct_blocks( &i_block[read_blocks], min(12, num_blocks), file_data);
 		read_blocks += min(12, num_blocks);
+			
+
 		
 		if (num_blocks > read_blocks) {
 			u32 blocks_to_read = min(num_blocks - read_blocks, 1024/4);
 			printk("\n\n%u blocks to read using the singly indirect block pointer\n", blocks_to_read);
-			read_singly_indirect_blocks( block_id_s, blocks_to_read, file_data + read_blocks * 1024);
+			read_singly_indirect_blocks( block_id_s+1, blocks_to_read, file_data + read_blocks * 1024);
 			read_blocks += blocks_to_read;
 		}
-		
+			
+
 			if (num_blocks > read_blocks) {
 
 				u32 blocks_to_read = min(num_blocks - read_blocks, 1024/4 * 1024/4);
@@ -367,12 +370,12 @@ int ext2_read(struct inode * inode, struct file * file, int count, char *file_da
 				read_doubly_indirect_blocks( block_id_d, blocks_to_read, file_data + read_blocks *1024);
 				read_blocks += blocks_to_read;
 			}
-			
+
 		return 0;
 }
 
 
-struct inode * ext2_stat(const char *file_path)
+struct inode * ext2_stat(  char *file_path)
 {
 	char *dirc, *basec, *bname, *dname; 
 	dirc = strdup(file_path);
@@ -386,13 +389,13 @@ struct inode * ext2_stat(const char *file_path)
 	 printk("inode number :%d\n", dir->inode);
 	 
      u32 what_block_group = find_inode(dir->inode);
-     
-	 BGDT(what_block_group, dir->inode);
-	 free(dir);	
+     printk("block group %d\n", what_block_group);
+	 
+
 	 printk("file size === %d\n\n", file_size);
 	 struct inode *inode = malloc_(sizeof(struct inode));
 	 inode->i_size = file_size;
-	 free(inode);
+	 
 	 return inode;
 }
 
