@@ -143,6 +143,8 @@ extern void release_console_sem(void);
 extern void console_conditional_schedule(void);
 extern void console_unblank(void);
 extern void con_init(void);
+extern  void set_cursor(int currcons);
+extern void redraw_screen(int new_console, int is_switch);
 /* VESA Blanking Levels */
 #define VESA_NO_BLANKING        0
 #define VESA_VSYNC_SUSPEND      1

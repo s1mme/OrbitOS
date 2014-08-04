@@ -83,20 +83,21 @@ void create_thread(void (*entry)(void), int type)
 {
          int nr;
          struct task_struct *p;
-							
-         p = (struct task_struct *) malloc_(sizeof(struct task_struct));
+			
+         p = (struct task_struct *) kmalloc(sizeof(struct task_struct));
         // if (!p)
           //       goto bad_fork;
-         memset(p, 0, sizeof(*p));     
+         memset(p, 0, sizeof(struct task_struct));     
          
          nr = find_empty_process();
          if (nr < 0)
 			printk("no empty process\n");
 
-        *p = init_task_2;	
+      //  *p = init_task_2;	
 		 
          p->swappable = 0;
-         p->stack = (u32)malloc_a(KERNEL_STACK_SIZE)+KERNEL_STACK_SIZE;
+         
+         p->stack = (u32)kvmalloc(KERNEL_STACK_SIZE)+KERNEL_STACK_SIZE;
          *(unsigned long *) p->kernel_stack_page = STACK_MAGIC;
          p->state = TASK_UNINTERRUPTIBLE;
          p->pid = get_pid();
@@ -114,7 +115,7 @@ void create_thread(void (*entry)(void), int type)
          SET_LINKS(p);		
          nr_tasks++;
 
-         struct pt_regs *kernel_stack = (struct pt_regs*)malloc_(sizeof(struct pt_regs));
+         struct pt_regs *kernel_stack = (struct pt_regs*)kmalloc(sizeof(struct pt_regs));
          u32 code_segment, data_segment;
 		 u32 eflags = 0x0202;
 		

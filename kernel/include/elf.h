@@ -152,5 +152,5 @@ typedef struct {
 #define SHT_SYMTAB   2
 #define SHT_STRTAB   3
 #define SHT_NOBITS   8
-
+extern int load_elf( char *path, char *argv[], char *envp[]);
 #endif

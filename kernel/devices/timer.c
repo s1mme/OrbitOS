@@ -8,6 +8,8 @@
 #include <processor.h>
 #include <printk.h>
 #include <heapmngr.h>
+#include <simple_vga.h>
+#include <console.h>
 #define HZ 100
 
 #define LATCH (11932182/1000)
@@ -108,7 +110,7 @@ irqreturn_t timer_interrupt(u32 esp)
 	 timer_ticks++;	
 	
 	 task_switching = 1;
-
+	// update_cursor();
      return esp;
  }
  unsigned int gettickcount_(void)

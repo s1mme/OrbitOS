@@ -58,13 +58,13 @@ struct file_operations {
 typedef long off_t;
 typedef unsigned long uintptr_t;
 long sys_lseek(unsigned int fd, off_t offset, unsigned int origin);
- int sys_stat(const char * filename, struct stat * statbuf);
+ int sys_stat( char * filename, struct stat * statbuf);
  int sys_close( int fd);
  int sys_read(unsigned int fd,char * buf,int count);
  int sys_open( char * filename, int flags, int mode);
 extern u32 heap_actual_global;
 extern u32 heap_global;
-extern  void stat(const char * filename, struct stat * statbuf);
+extern  void stat( char * filename, struct stat * statbuf);
 extern void register_filesystem(void);
 extern int kopen( char * filename,int mode);
 extern int kread(unsigned int fd,char * buf,int count);

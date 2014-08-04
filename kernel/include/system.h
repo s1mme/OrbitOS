@@ -60,7 +60,7 @@ extern size_t lfind(const char * str, const char accept);
 extern size_t rfind(const char * str, const char accept);
 extern size_t strspn(const char * str, const char * accept);
 extern char * strpbrk(const char * str, const char * accept);
-void putch(char c);
+
 extern u32 strlen(const char *str);
 extern char* dirname(char *path);
 extern  char* basename(char *path);

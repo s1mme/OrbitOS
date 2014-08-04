@@ -2,8 +2,9 @@
 #include <timer.h>
 void outb_p( unsigned char data, unsigned short port)
 {	
-sleep(1);
+
 __asm__ __volatile__("outb %1, %0" : : "dN" (port), "a" (data));	
+sleep(7);
 }
 
 
@@ -11,7 +12,7 @@ unsigned char inb_p(unsigned short port)
 {
    unsigned char ret;
    __asm__ volatile("inb %1, %0" : "=a" (ret) : "dN" (port));
-   sleep(1);
+   sleep(7);
    return ret;
 }
 

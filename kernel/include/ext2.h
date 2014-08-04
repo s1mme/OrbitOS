@@ -82,7 +82,7 @@ struct ext2_inode {
 
 extern int ext2_read(struct inode * inode, struct file * file, int count,char *buf);
 extern int ext2_open(int fd, struct file * file, char *file_name );
-extern struct inode * ext2_stat(const char *file_path);
+extern struct inode * ext2_stat( char *file_path);
 extern struct ext2_super_block * ext2_read_superblock(void);
 extern u32 file_size;
 #endif

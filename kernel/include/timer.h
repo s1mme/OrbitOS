@@ -14,4 +14,5 @@ struct timer_opts {
   };
 extern  struct init_timer_opts  timer_tsc_init;
 extern void sleep( int seconds );
+extern  unsigned int gettickcount_(void);
 #endif

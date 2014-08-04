@@ -136,8 +136,8 @@ static void set_origin(int currcons)
 	add_softcursor(currcons);
 	if ((cursor_type & 0x0f) != 1)
 	    sw->con_cursor(vc_cons[currcons].d,CM_DRAW);
-    /*} */ else
-	hide_cursor(currcons);
+  //  /*} */ else
+//	hide_cursor(currcons);
 }
 
 static inline void cr(int currcons)
@@ -268,8 +268,8 @@ void vt_console_print(struct console *co, const char * b, unsigned count)
 		//goto quit;
 
 	/* undraw cursor first */
-	if (IS_FG)
-		hide_cursor(currcons);
+	//if (IS_FG)
+		//hide_cursor(currcons);
 
 	
 
@@ -324,7 +324,7 @@ if (cnt > 0) {
 			need_wrap = 1;
 		}	
 	}
-
+	
 	set_cursor(currcons);
 
 	//if (!oops_in_progress)
@@ -565,7 +565,7 @@ void con_init(void)
 	const char *display_desc = NULL;
 	unsigned int currcons = 0;
 
-	if (conswitchp)		//VGA
+	if (conswitchp)	
 		display_desc = conswitchp->con_startup();
 	/*
 	 * kmalloc is not running yet - we use the bootmem allocator.
@@ -574,9 +574,9 @@ void con_init(void)
 		vc_cons[currcons].d = (struct vc_data *)
 				malloc_(sizeof(struct vc_data)); //alloc_bootmem
 	//	vt_cons[currcons] = (struct vt_struct *)
-		//		alloc_bootmem(sizeof(struct vt_struct)); //kan kanske använda "min" kmalloc istället
+		//		alloc_bootmem(sizeof(struct vt_struct));
 	visual_init(currcons, 1);
-	screenbuf = (unsigned short *) malloc_(screenbuf_size); //alloc_bootmem
+
 	kmalloced = 0;
 	vc_init(currcons, video_num_lines, video_num_columns, 
 			currcons || !sw->con_save_screen);
@@ -584,29 +584,25 @@ void con_init(void)
 	currcons = fg_console = 0;
 	master_display_fg = vc_cons[currcons].d;
 	set_origin(currcons);
-	save_screen(currcons);
+	//save_screen(currcons);
 	gotoxy(currcons,x,y);
 	csi_J(currcons, 0);
 	update_screen(fg_console);
 
 	printable = 1;
-	//printk("\n");
-//	conswitchp->con_clear(vc_cons[0].d ,0,0,1,80*25*2);
-//	conswitchp->con_putcs(vc_cons[1].d ,"test",5,24, 50);
+
+	conswitchp->con_putc(vc_cons[1].d ,'H',24, 50);
 	
 	
 	register_console(&vt_console_driver);
-
-
-	//vt_console_print(vc_cons[1].d ,"eklund\n",7);
-	printk("\n screenbuf_size : %d\n ", screenbuf_size);
+	//printk("\n screenbuf_size : %d\n ", screenbuf_size);
 
 
 	printk("\n Console : %s \n%s         %dx%d     ",
-		can_do_color ? "colour" : "mono",
-		display_desc, video_num_columns, video_num_lines);
+	can_do_color ? "colour" : "mono",
+	display_desc, video_num_columns, video_num_lines);
 		//unregister_console(&vt_console_driver);
-		save_screen(currcons);
+		//save_screen(currcons);
 		
 
 }

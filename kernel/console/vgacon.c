@@ -667,6 +667,7 @@ void vgacon_putc(struct vc_data *conp, int c, int ypos, int xpos)
 
     p = (unsigned short *)(vga_vram_base+ypos*vga_video_size_row+xpos*2);
     scr_writew(7 << 8 | c, p);
+    vgacon_cursor(conp,CM_DRAW);
   
 }
 
@@ -682,7 +683,7 @@ void vgacon_putcs(struct vc_data *conp, const unsigned short *s, int count,
     sattr = 7 << 8;
     while (count--)
 	scr_writew(sattr | *s++, p++);
-
+vgacon_cursor(conp,CM_DRAW);
 }
 
 void vgacon_bmove(struct vc_data *conp, int sy, int sx, int dy, int dx,

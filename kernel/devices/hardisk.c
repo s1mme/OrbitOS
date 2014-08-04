@@ -319,7 +319,7 @@ void do_hd_request (struct request *info)
 {
 	    reset_controller(info);		
         hd_request(info);
-        reset_controller(info);		
+        	reset_controller(info);
 }
 
 char * read_disc_sector(u32 sector, u32 nr_sectors, void *buf)
@@ -332,7 +332,7 @@ info.nr_sectors = nr_sectors;
 
 info.buffer = (char *)buf;
 
-memset(info.buffer, 0x0,512*nr_sectors);
+//memset(info.buffer, 0x0,512*nr_sectors);
 do_hd_request(&info);
 
 return buf ;
@@ -380,6 +380,6 @@ void hd_init_hook_(void)
 irqreturn_t hd_interrupt(u32 esp)
  {
 
-	printk("::hd interrupt::\n");
+	//printk("::hd interrupt::\n");
     return esp;
  }

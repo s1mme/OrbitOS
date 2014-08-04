@@ -242,13 +242,14 @@ vmmngr_initialize(u32 memsize) {
 	nframes = 2072192000 / 4; //2072192000
 	frames  = (u32 *)kmalloc(INDEX_FROM_BIT(nframes * 8));
 	memset(frames, 0, INDEX_FROM_BIT(nframes));
-	//debug_print(NOTICE,"Starting frame allocation\n");
 	u32 phys;
 	kernel_directory = (page_directory_t *)kvmalloc_p(sizeof(page_directory_t),&phys);
 	memset(kernel_directory, 0, sizeof(page_directory_t));
 
 
-	
+		for (u32 i = KERNEL_HEAP_INIT; i < KERNEL_HEAP_END+0x2000000; i += 0x1000) {
+		_vmm_get_page_addr(i, 1, kernel_directory);
+	}
 	for (u32 i = 0; i < placement_pointer + 0xf00000; i += 0x1000) {
 		_vmmngr_alloc_frame(_vmm_get_page_addr(i, 1, kernel_directory), 0, 1);
 	}
@@ -260,16 +261,17 @@ vmmngr_initialize(u32 memsize) {
 	kernel_directory->physical_address = (u32)kernel_directory->physical_tables;
 
 	/* Kernel Heap Space */
-	for (u32 i = placement_pointer; i < KERNEL_HEAP_INIT; i += 0x1000) {
+	for (u32 i = placement_pointer; i < KERNEL_HEAP_INIT+0x2000000; i += 0x1000) {
+		_vmmngr_alloc_frame(_vmm_get_page_addr(i, 1, kernel_directory), 0, 1);
+	}
+	for (u32 i = 0xa000004; i < 0xaf00004; i += 0x1000) {
 		_vmmngr_alloc_frame(_vmm_get_page_addr(i, 1, kernel_directory), 0, 1);
 	}
 	
-	/* And preallocate the page entries for all the rest of the kernel heap as well */
-	for (u32 i = KERNEL_HEAP_INIT; i < KERNEL_HEAP_END; i += 0x1000) {
-		_vmm_get_page_addr(i, 1, kernel_directory);
+	    for (u32 i = 0x40000000; i < 0x44000000; i += 0x1000) {
+		_vmmngr_alloc_frame(_vmm_get_page_addr(i, 1, kernel_directory), 0, 1);
 	}
-
-
+	
 	switch_page_directory(kernel_directory);
 	
 	_set_gate(14, 0xF, isr14,0,0,0x08);
@@ -309,62 +311,12 @@ _vmm_get_page_addr(
 	}
 }
 
-static const char *exception_messages_[32] = {
-	"Division by zero",				/* 0 */
-	"Debug",
-	"Non-maskable interrupt",
-	"Breakpoint",
-	"Detected overflow",
-	"Out-of-bounds",				/* 5 */
-	"Invalid opcode",
-	"No coprocessor",
-	"Double fault",
-	"Coprocessor segment overrun",
-	"Bad TSS",						/* 10 */
-	"Segment not present",
-	"Stack fault",
-	"General protection fault",
-	"Page fault",
-	"Unknown interrupt",			/* 15 */
-	"Coprocessor fault",
-	"Alignment check",
-	"Machine check",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved"
-};
+
 void
 page_fault(
 		struct pt_regs *r)  {
 	
-   unsigned int faulting_address;
-  	__asm__ __volatile__ ("mov %%cr2, %0" : "=r" (faulting_address));
-   
-  // int present  = !(r->err_code & 0x1); 
-   int rw = r->err_code & 0x2;           
-   int us = r->err_code & 0x4;           
-   int reserved = r->err_code & 0x8;     
 
-
-   if(rw)
-		printk("Read-only ");
-   if(us)
-		printk("User-mode ");
-   if(reserved)
-		printk("Reserved ");
- 	printk("\nUnhandled exception: [%d] %s", r->int_no, exception_messages_[r->int_no]);
- 	printk("\n faulting_address : %x", faulting_address);
- 	for(;;);
 
 }
 static page_table_t *clone_table(page_table_t *src, u32 *physAddr)

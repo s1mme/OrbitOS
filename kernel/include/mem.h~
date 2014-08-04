@@ -55,12 +55,4 @@ extern u32
 kmalloc(
 		size_t size
 		);
-extern void
-dma_frame(
-		page_t *page,
-		int is_kernel,
-		int is_writeable,
-		u32 address
-		);
-extern void* physicaltovirt(unsigned int physAddress, unsigned int numberOfPages);
 #endif

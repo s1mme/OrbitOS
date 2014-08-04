@@ -102,11 +102,11 @@ extern int openpty(int * master, int * slave, char * name, void * _ign0, void * 
 extern fs_node_t * hello_device_create(void);
 extern fs_node_t * random_device_create(void);
 
-int read_fs(fs_node_t *node, int offset, int size, unsigned char *buffer);
+int read_fs(fs_node_t *node, int offset, int size,  char *buffer);
 u32 write_fs(fs_node_t *node, u32 offset, u32 size, u8 *buffer);
 void open_fs(fs_node_t *node, unsigned int flags);
 void close_fs(fs_node_t *node);
-struct dirent *readdir_fs_(fs_node_t *node, int index);
+extern struct dirent *readdir_fs(fs_node_t *node, int index);
 fs_node_t *finddir_fs(fs_node_t *node, char *name);
 
 typedef struct
@@ -125,4 +125,5 @@ typedef struct
 
 fs_node_t *install_initrd(u32 location);
 extern fs_node_t *fs_root_;
+extern char * load_initrd_app(char *name, char **argv, char **env);
 #endif

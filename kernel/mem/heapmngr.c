@@ -1,8 +1,9 @@
 #include <types.h>
 #include <heapmngr.h>
 #include <system.h>
-
+#include <printk.h>
 #include <mem.h>
+#include <timer.h>
 void *_heapmngr_get_element(u32 i, table_t *table);
  heap_t * kheap;
 table_t _heapmngr_table_initialize(u32 sz, void *addr)
@@ -110,7 +111,7 @@ heap_t *_heapmngr_initialize(u32 heap_pool_start_pos, u32 heap_pool_end_pos, u32
 	return heap;
 }
 
-void *request_kmalloc(u32 sz, u32 align, heap_t *heap)
+void *request_malloc(u32 sz, u32 align, heap_t *heap)
 {
 	desc_head *old_element;
 	u32 new_size = sz + sizeof(desc_head) + sizeof(desc_foot);
@@ -167,7 +168,7 @@ void *request_kmalloc(u32 sz, u32 align, heap_t *heap)
 	return (void *)((u32)block_header + sizeof(desc_head));
 }
 
-void release_kmalloc(void *ptr, heap_t *heap)
+void release_malloc(void *ptr, heap_t *heap)
 {
 	if(ptr == 0)
 	return;
@@ -191,7 +192,7 @@ void release_kmalloc(void *ptr, heap_t *heap)
 
 void *malloc_(u32 sz)
 {
-	return request_kmalloc(sz, 0, kheap);
+	return request_malloc(sz, 0, kheap);
 }
 
 void *malloc(u32 sz)
@@ -202,16 +203,75 @@ void *malloc(u32 sz)
 
 void *malloc_a(u32 sz)
 {
-	return request_kmalloc(sz, 1, kheap);
+	return request_malloc(sz, 1, kheap);
 }
 
 void free_(void *ptr)
 {
-	release_kmalloc(ptr, kheap);
+	release_malloc(ptr, kheap);
 }
 
 void free(void *ptr)
 {
 
 	 free_(ptr);
+}
+void heaptest(void) {
+/**********************************
+*** HEAP DEBUGGING AND TESTING ***
+**********************************/
+
+#define TEST_1_LOOPS 1
+#define TEST_2_LOOPS 50
+
+//u32 start_time = gettickcount_();
+
+//print_heap_index();
+
+void *a = malloc(8888);
+void *b = malloc(888888);
+void *c = malloc(8888888);
+
+
+
+memset(a, 0xab, 6);
+memcpy(b, a, 6);
+
+printk("\na: %p", a);
+printk(", b: %p\n", b);
+printk("c: %p\n", c);
+
+printk("\n");
+//print_heap_index();
+
+printk("Freeing c...\n");
+free(c);
+//print_heap_index();
+printk("Freeing a...\n");
+free(a);
+//print_heap_index();
+printk("Freeing b...\n");
+free(b);
+//print_heap_index();
+
+printk("Testing page alignment...");
+
+void *initial = malloc(15); /* to make sure the allocations aren't aligned by chance */
+//assert(IS_DWORD_ALIGNED(initial));
+printk("Initial: %p\n", initial);
+//print_heap_index();
+void *unaligned = malloc(14);
+printk("Unaligned: %p\n", unaligned);
+//assert(IS_DWORD_ALIGNED(unaligned));
+//print_heap_index();
+void *aligned = malloc_a(16);
+//assert(IS_PAGE_ALIGNED(aligned));
+
+printk("Aligned: %p\n", aligned);
+//print_heap_index();
+
+printk("Freeing them all...\n");
+free(initial);
+free(unaligned);
+free(aligned);
 }
